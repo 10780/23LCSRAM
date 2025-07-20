@@ -8,7 +8,7 @@ class IC {
 		chipSelect(int pin);
 		bool isChipSelected();
 		int getChipSelectPin();
-		void writeIC(uint32_t address, byte data);
+		void writeByte(uint32_t address, byte data);
 		void writeIC(uint32_t address, byte* data, uint16_t length);
 		byte readByte(uint32_t address);
 		void readIC(uint32_t address, byte* buffer, uint16_t length);

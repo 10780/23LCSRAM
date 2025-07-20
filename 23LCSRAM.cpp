@@ -63,7 +63,7 @@ int IC::getChipSelectPin() {
     return _pin;
 }
 
-void IC::writeIC(uint32_t address, byte data) {
+void IC::writeByte(uint32_t address, byte data) {
     // Check if chip is properly initialized
     if (!isChipSelected()) {
         Serial.println("Error: Cannot write - chip not properly initialized");
@@ -172,7 +172,7 @@ bool IC::testIC() {
     Serial.println(_pin);
     
     // Write test data
-    writeIC(testAddress, testData);
+    writeByte(testAddress, testData);
     delayMicroseconds(10);
     
     // Read back the data

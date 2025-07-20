@@ -72,10 +72,10 @@ sram.terminate();  // Clean shutdown
 
 ### Write Functions
 
-#### `writeIC(uint32_t address, byte data)`
+#### `writeByte(uint32_t address, byte data)`
 Writes a single byte to the specified memory address.
 ```cpp
-sram.writeIC(0x000100, 0x42);  // Write 0x42 to address 0x100
+sram.writeByte(0x000100, 0x42);  // Write 0x42 to address 0x100
 ```
 - **Parameters**: 
   - `address` - Memory address (0 to 0x1FFFF for 23LC1024)
@@ -165,7 +165,7 @@ void setup() {
         Serial.println("SRAM ready!");
         
         // Write some data
-        sram.writeIC(0x000000, 0xAB);
+        sram.writeByte(0x000000, 0xAB);
         
         // Read it back
         byte data = sram.readByte(0x000000);
@@ -204,9 +204,9 @@ void setup() {
         Serial.println("All chips ready!");
         
         // Write to different chips
-        sram1.writeIC(0x000000, 0x11);
-        sram2.writeIC(0x000000, 0x22);
-        sram3.writeIC(0x000000, 0x33);
+        sram1.writeByte(0x000000, 0x11);
+        sram2.writeByte(0x000000, 0x22);
+        sram3.writeByte(0x000000, 0x33);
         
         // Read from all chips
         Serial.print("Chip 1: 0x");
