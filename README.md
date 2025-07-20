@@ -287,4 +287,4 @@ The library includes comprehensive error checking:
 
 Public Domain - Use at your own risk.
 
-(Credit is appreciated though)
+(Credit is appreciated though if you use this for any derivative work)
