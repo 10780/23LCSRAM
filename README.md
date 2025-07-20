@@ -1,6 +1,8 @@
 Has this ever happened to you?
 
-You work on a physical prototyping project only to find out your microcontroller board doesn't have the resources (meaning memory) to actually make your code, and consequently your device, work as designed. :(
+You work on a physical prototyping project only to find out your microcontroller board doesn't have the resources (meaning memory) to actually make your code, and consequently your device, work as designed. 
+
+:(
 
 Luckily there is a solution...
 
