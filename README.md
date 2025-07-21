@@ -145,6 +145,120 @@ Serial.println(pin);
 ```
 - **Returns**: Current chip select pin number
 
+## ICArray Class (Multi-Chip Management)
+
+The `ICArray` class provides automatic management of multiple SRAM chips, eliminating the need for manual setup of individual chips.
+
+### Array Initialization Functions
+
+#### `initializeArray(int numChips, int* chipSelectPins)`
+Initializes an array of SRAM chips with specified chip select pins.
+```cpp
+ICArray sramArray;
+int pins[] = {4, 5, 6, 7};
+sramArray.initializeArray(4, pins);  // Initialize 4 chips on pins 4,5,6,7
+```
+- **Parameters**:
+  - `numChips` - Number of chips (1-10)
+  - `chipSelectPins` - Array of pin numbers for chip select
+- **Returns**: `true` if successful, `false` if failed
+
+#### `initializeArray(int numChips, int startPin)`
+Initializes an array of SRAM chips with consecutive chip select pins.
+```cpp
+ICArray sramArray;
+sramArray.initializeArray(4, 4);  // Initialize 4 chips on pins 4,5,6,7
+```
+- **Parameters**:
+  - `numChips` - Number of chips (1-10)
+  - `startPin` - Starting pin number (pins will be consecutive)
+- **Returns**: `true` if successful, `false` if failed
+
+#### `terminateArray()`
+Safely terminates all chips in the array.
+```cpp
+sramArray.terminateArray();
+```
+
+### Array Access Functions
+
+#### `writeByte(int chipIndex, uint32_t address, byte data)`
+Writes a single byte to a specific chip in the array.
+```cpp
+sramArray.writeByte(0, 0x000100, 0x42);  // Write to chip 0
+```
+
+#### `readByte(int chipIndex, uint32_t address)`
+Reads a single byte from a specific chip in the array.
+```cpp
+byte value = sramArray.readByte(2, 0x000100);  // Read from chip 2
+```
+
+#### `writeIC(int chipIndex, uint32_t address, byte* data, uint16_t length)`
+Writes multiple bytes to a specific chip in the array.
+```cpp
+byte data[] = {0x01, 0x02, 0x03};
+sramArray.writeIC(1, 0x000200, data, 3);  // Write to chip 1
+```
+
+#### `readIC(int chipIndex, uint32_t address, byte* buffer, uint16_t length)`
+Reads multiple bytes from a specific chip in the array.
+```cpp
+byte buffer[3];
+sramArray.readIC(3, 0x000200, buffer, 3);  // Read from chip 3
+```
+
+### Array-Wide Operations
+
+#### `writeByteToAll(uint32_t address, byte data)`
+Writes the same byte to all chips in the array at the specified address.
+```cpp
+sramArray.writeByteToAll(0x000000, 0xFF);  // Write 0xFF to address 0 on all chips
+```
+
+#### `writeICToAll(uint32_t address, byte* data, uint16_t length)`
+Writes the same data array to all chips in the array.
+```cpp
+byte data[] = {0x01, 0x02, 0x03};
+sramArray.writeICToAll(0x000100, data, 3);  // Write same data to all chips
+```
+
+### Array Utility Functions
+
+#### `testAllChips()`
+Tests all chips in the array and reports results.
+```cpp
+if (sramArray.testAllChips()) {
+    Serial.println("All chips passed!");
+} else {
+    Serial.println("Some chips failed!");
+}
+```
+- **Returns**: `true` if all chips pass, `false` if any fail
+
+#### `getChipCount()`
+Returns the number of chips in the array.
+```cpp
+int count = sramArray.getChipCount();
+```
+
+#### `getChip(int chipIndex)`
+Returns a pointer to a specific chip for direct access.
+```cpp
+IC* chip2 = sramArray.getChip(2);  // Get direct access to chip 2
+if (chip2 != nullptr) {
+    chip2->writeByte(0x000000, 0xAA);
+}
+```
+
+#### `isArrayInitialized()`
+Checks if the array is properly initialized.
+```cpp
+if (sramArray.isArrayInitialized()) {
+    // Safe to use array functions
+}
+```
+
 ## Usage Examples
 
 ### Basic Single Chip Usage
@@ -223,6 +337,89 @@ void loop() {
 }
 ```
 
+### Automated Array Management (Recommended)
+```cpp
+#include "23LCSRAM.h"
+
+ICArray sramArray;
+
+void setup() {
+    Serial.begin(9600);
+    
+    // Option 1: Initialize with consecutive pins (4, 5, 6, 7)
+    if (sramArray.initializeArray(4, 4)) {
+        Serial.println("Array initialized successfully!");
+        
+        // Test all chips at once
+        if (sramArray.testAllChips()) {
+            Serial.println("All chips are working!");
+            
+            // Write different data to each chip
+            sramArray.writeByte(0, 0x000000, 0x11);  // Chip 0
+            sramArray.writeByte(1, 0x000000, 0x22);  // Chip 1
+            sramArray.writeByte(2, 0x000000, 0x33);  // Chip 2
+            sramArray.writeByte(3, 0x000000, 0x44);  // Chip 3
+            
+            // Read back from all chips
+            for (int i = 0; i < sramArray.getChipCount(); i++) {
+                byte value = sramArray.readByte(i, 0x000000);
+                Serial.print("Chip ");
+                Serial.print(i);
+                Serial.print(": 0x");
+                Serial.println(value, HEX);
+            }
+            
+            // Write same data to all chips
+            sramArray.writeByteToAll(0x000100, 0xAA);
+            
+            // Write array data to a specific chip
+            byte data[] = {0x10, 0x20, 0x30, 0x40, 0x50};
+            sramArray.writeIC(0, 0x000200, data, 5);
+        }
+    } else {
+        Serial.println("Failed to initialize array!");
+    }
+}
+
+void loop() {
+    // Your main code here
+}
+```
+
+### Custom Pin Assignment Array
+```cpp
+#include "23LCSRAM.h"
+
+ICArray sramArray;
+
+void setup() {
+    Serial.begin(9600);
+    
+    // Option 2: Initialize with custom pin assignment
+    int customPins[] = {2, 7, 9, 10};  // Non-consecutive pins
+    if (sramArray.initializeArray(4, customPins)) {
+        Serial.println("Custom array initialized!");
+        
+        // Test and use the array
+        sramArray.testAllChips();
+        
+        // Access individual chips
+        sramArray.writeByte(0, 0x000000, 0xAA);  // Pin 2
+        sramArray.writeByte(1, 0x000000, 0xBB);  // Pin 7
+        sramArray.writeByte(2, 0x000000, 0xCC);  // Pin 9
+        sramArray.writeByte(3, 0x000000, 0xDD);  // Pin 10
+        
+        // Broadcast same data to all chips
+        byte broadcastData[] = {0x01, 0x02, 0x03, 0x04};
+        sramArray.writeICToAll(0x001000, broadcastData, 4);
+    }
+}
+
+void loop() {
+    // Your main code here
+}
+```
+
 ### Array Data Handling
 ```cpp
 // Writing and reading arrays
@@ -256,6 +453,10 @@ The library includes comprehensive error checking:
 - **Address format**: 24-bit addressing (supports larger chips)
 - **Page boundaries**: No special page handling required
 - **Sequential access**: Automatic address increment for multi-byte operations
+
+## Array Construction Using ICArray
+
+- **Limits**: Minimum of 2, maximum of 10
 
 ## Technical Notes
 
